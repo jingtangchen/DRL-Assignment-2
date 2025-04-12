@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class nTupleNewrok:
     def __init__(self, tuples):
@@ -12,13 +13,15 @@ class nTupleNewrok:
             LUTS.append(np.zeros((self.TARGET_PO2 + 1) ** len(tp)))
         return LUTS
     
+    def tile_to_index(self, tile):
+        return 0 if tile == 0 else int(math.log(tile, 2))
+
     def tuple_id(self, values):
         values = values[::-1]
         k = 1
         n = 0
-        for v in values:
-            if v >= self.TARGET_PO2:
-                return 0
+        for _v in values:
+            v = self.tile_to_index(_v)
             n += v * k
             k *= self.TARGET_PO2
         return n

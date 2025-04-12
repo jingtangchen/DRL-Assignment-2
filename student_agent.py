@@ -25,6 +25,7 @@ class Game2048Env(gym.Env):
         self.last_move_valid = True  # Record if the last move was valid
 
         self.reset()
+        self.last_added = (-1, -1)
 
     def reset(self):
         """Reset the environment"""
@@ -40,6 +41,7 @@ class Game2048Env(gym.Env):
         if empty_cells:
             x, y = random.choice(empty_cells)
             self.board[x, y] = 2 if random.random() < 0.9 else 4
+            self.last_added = (x, y)
 
     def compress(self, row):
         """Compress the row: move non-zero values to the left"""
@@ -243,16 +245,20 @@ def create_env_from_state(state, score):
 def get_action(state, score):
     from pathlib import Path
     path = Path("network.pkl")
-    n_games, agent = pickle.load(path.open("rb"))
+    _, agent = pickle.load(path.open("rb"))
     
     env = Game2048Env()
     a_best = None
     r_best = -1
     legal_moves = [a for a in range(4) if env.is_move_legal(a)]
-    sim_env = create_env_from_state(state, score)
+    
     for a in legal_moves:
+        sim_env = create_env_from_state(state, score)
         next_state, reward, _, _ = sim_env.step(a)
-        r = agent.V(next_state) + reward
+        if not sim_env.last_move_valid:
+            continue
+        next_state[sim_env.last_added[0]][sim_env.last_added[1]] = 0
+        r = agent.V(next_state) + reward - score
         if r > r_best:
             r_best = r
             a_best = a
@@ -260,5 +266,16 @@ def get_action(state, score):
         return random.choice(legal_moves)
     return a_best
         
+'''
+env = Game2048Env()
+state = env.reset()
+reward = 0
 
-
+done = False
+while not done:
+    best_act = get_action(state, reward)
+    state, reward, done, _ = env.step(best_act)
+    #print(best_act, reward)
+    #print(state)
+print("Game over, final score:", env.score)
+'''
