@@ -13,7 +13,8 @@ class nTupleNewrok:
     def V(self, board):
         vals = []
         for i, (tp, LUT) in enumerate(zip(self.TUPLES, self.LUTS)):
-            tiles = [board[i] for i in tp]
+            tempboard = board.flatten()
+            tiles = [tempboard[i] for i in tp]
             tpid = self.tuple_id(tiles)
             vals.append(LUT[tpid])
         return np.mean(vals)
