@@ -231,6 +231,15 @@ class Game2048Env(gym.Env):
         # If the simulated board is different from the current board, the move is legal
         return not np.array_equal(self.board, temp_board)
 
+def create_env_from_state(state, score):
+    """
+    Creates a deep copy of the environment with a given board state and score.
+    """
+    new_env = Game2048Env()
+    new_env.board = state.copy()
+    new_env.score = score
+    return new_env
+
 def get_action(state, score):
     from pathlib import Path
     path = Path("network.pkl")
@@ -240,8 +249,10 @@ def get_action(state, score):
     a_best = None
     r_best = -1
     legal_moves = [a for a in range(4) if env.is_move_legal(a)]
+    sim_env = create_env_from_state(state, score)
     for a in legal_moves:
-        r = agent.V(state)
+        next_state, reward, _, _ = sim_env.step(a)
+        r = agent.V(next_state) + reward
         if r > r_best:
             r_best = r
             a_best = a
