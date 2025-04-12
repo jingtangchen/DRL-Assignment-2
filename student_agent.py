@@ -231,10 +231,51 @@ class Game2048Env(gym.Env):
         # If the simulated board is different from the current board, the move is legal
         return not np.array_equal(self.board, temp_board)
 
+class nTupleNewrok:
+    def tuple_id(self, values):
+        values = values[::-1]
+        k = 1
+        n = 0
+        for v in values:
+            if v >= self.TARGET_PO2:
+                raise ValueError(
+                    "digit %d should be smaller than the base %d" % (v, self.TARGET_PO2)
+                )
+            n += v * k
+            k *= self.TARGET_PO2
+        return n
+
+    def V(self, board, delta=None, debug=False):
+        """Return the expected total future rewards of the board.
+        Updates the LUTs if a delta is given and return the updated value.
+        """
+        if debug:
+            print(f"V({board})")
+        vals = []
+        for i, (tp, LUT) in enumerate(zip(self.TUPLES, self.LUTS)):
+            tiles = [board[i] for i in tp]
+            tpid = self.tuple_id(tiles)
+            if delta is not None:
+                LUT[tpid] += delta
+            v = LUT[tpid]
+            if debug:
+                print(f"LUTS[{i}][{tiles}]={v}")
+            vals.append(v)
+        return np.mean(vals)
+
 def get_action(state, score):
-    env = Game2048Env()
-    return random.choice([0, 1, 2, 3]) # Choose a random action
+    _, agent = pickle.load("network.pkl".open("rb"))
     
-    # You can submit this random agent to evaluate the performance of a purely random strategy.
+    env = Game2048Env()
+    a_best = None
+    r_best = -1
+    legal_moves = [a for a in range(4) if env.is_move_legal(a)]
+    for a in legal_moves:
+        r = agent.V(state)
+        if r > r_best:
+            r_best = r
+            a_best = a
+    return a_best
+        
 
 
