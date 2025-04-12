@@ -245,6 +245,8 @@ def get_action(state, score):
         if r > r_best:
             r_best = r
             a_best = a
+    if a_best == None:
+        return random.choice(legal_moves)
     return a_best
         
 
