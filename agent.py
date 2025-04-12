@@ -17,6 +17,8 @@ class nTupleNewrok:
         k = 1
         n = 0
         for v in values:
+            if v >= self.TARGET_PO2:
+                return 0
             n += v * k
             k *= self.TARGET_PO2
         return n
