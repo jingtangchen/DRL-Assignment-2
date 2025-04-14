@@ -9,7 +9,6 @@ import copy
 import random
 import math
 
-
 class Game2048Env(gym.Env):
     def __init__(self):
         super(Game2048Env, self).__init__()
